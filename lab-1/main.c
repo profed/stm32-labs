@@ -79,8 +79,9 @@ int main() {
   */
 
   // however, once again arises the problem of debouncing. it is not that easy to resolve it in
-  // external interrupt handler. now, i will show one way of doing it, that will be explicitly
-  // explained in further labs (should be timers and stuff)
+  // external interrupt handler (but you can improve the example above by using handlers and / or
+  // Button_UpdateState in interrupt handlers). now, i will show one way of doing it, it will be
+  // explicitly explained in further lectures (should be timers and stuff)
 
   // ====================
   // 3rd option : internal interrupt

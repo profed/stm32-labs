@@ -1,13 +1,15 @@
 // ====================
-// in this lab, we'll attempt to blink with diode
-// from here, you will be able to learn about bouncung and fixes for it and way become acknowledged
-// with internal and external interrupts, which are very important in MC programming
+// in this lab, we'll attempt to work with encoder
+// from here, you will be able to learn about using timers in alternative modes and about basic work
+// with encoder. these ckills may prove useful later on, when doing final project, as encoder is
+// basically the mousewheel and can be used to track not only the direction of rotation, but also
+// it's speed
 //
 // config functions and device drivers are in separate folders so they can be used in further
 // experiments
 //
-// note : 2nd and 3rd options are here just for familiarization and will be axplained on further
-// lectures, no need to worry
+// note : 1st option is vital, another ones are for your familiarization and should be explained in
+// details in further lectures
 //
 // uncomment snippets to run them
 
@@ -18,6 +20,16 @@
 #include "./input/input.h"
 #include "./output/output.h"
 
+void HandlerTurnLeft(void* params) {
+  LL_GPIO_SetOutputPin(GPIOB, PIN_4);
+  LL_GPIO_ResetOutputPin(GPIOB, PIN_3);
+}
+
+void HandlerTurnRight(void* params) {
+  LL_GPIO_SetOutputPin(GPIOB, PIN_3);
+  LL_GPIO_ResetOutputPin(GPIOB, PIN_4);
+}
+
 int main() {
   // configuring clocking
   Clocking_config(LL_FLASH_LATENCY_1,
@@ -26,77 +38,61 @@ int main() {
                   LL_RCC_SYSCLK_DIV_1,
                   LL_RCC_APB1_DIV_1);
 
-  // see ./device-drivers/button.h for details and implementation
-  SetButton(GPIOA, PIN_2);
+  // see ./device-dravers/encoder.h for details and implementation
+  SetEncoder(GPIOA, TIM2, PIN_1, PIN_0);
 
-  // see ./device-drivers/diode.h for details and implementation
+  // diodes for rotation indication
   SetDiode(GPIOB, PIN_3);
+  SetDiode(GPIOB, PIN_4);
 
-  // ====================
-  // 1st option : mundane constant query to the port state
-  // here we are simply asking port about it's state in endless cycle
+  // LL_GPIO_SetOutputPin(GPIOB, PIN_3);
+
+  // =====================
+  // 1st option :
+  // as usual, first option is boring and bad. constant call of Encoder_GetRotation function in
+  // endless cycle. let's see how it works:
 
   /*
-      while (1) {
-        int is_button_pressed = LL_GPIO_IsInputPinSet(GPIOA, PIN_2);
-        if (is_button_pressed) {
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-        }
+    while (1) {
+      // see ./device-drivers/encoder.h for details and implementation
+      int rot = Encoder_GetRotation(TIM2);
+
+      if (rot == Left) {
+        LL_GPIO_SetOutputPin(GPIOB, PIN_4);
+        LL_GPIO_ResetOutputPin(GPIOB, PIN_3);
+      } else if (rot == Right) {
+        LL_GPIO_SetOutputPin(GPIOB, PIN_3);
+        LL_GPIO_ResetOutputPin(GPIOB, PIN_4);
       }
+    }
 
-      return 0;
+    return 0;
   */
 
-  // in theory, every time button is pressed, diode will be toggled. however, you'll be able to
-  // notice, that sometimes diode doesn't change it's state or flickers like mad. this is caused by
-  // button bouncing. let's try to fix it:
+  // assuming you did previous labs, it's obvious why such implementation is poor. it depends on
+  // cycle's busyness and doesn't even has debouncing (you can notice second diode is flickering a
+  // little bit while you rotate). here i won't try to fix this aaproach and will proceed to the
+  // better one immidaetly, but it will be a useful exercise for students. you should modify
+  // Encoder_GetRotation function to have debounce and handlers for each possible state and test it
 
-  /*
-      while (1) {
-        // see ./device-drivers/button.h for implementation and explanantions
-        Button_UpdateState(GPIOA, PIN_2);
-
-        if (button_state.status == Turn_on)
-          // could've wrapped this into the handler, mentioned in button.h, but it's better left as
-          // student's exersise. also, if you add more operations here or in tick handler, this "if
-          // check" will stop working correctly. guess why, and how using handlers may fix it
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-        }
-
-      return 0;
-  */
+  // =====================
+  // option 2 : (exercise)
+  // now, you can turn on ticking interrupt and put Encoder_GetRotation inside of it,
+  // just as we did with button and 7segm, nothing difficult
 
   // ====================
-  // 2nd option : external interrupt
-  // here we set up external interrupt to pins 2-3, thus avoiding constant queries and cycles, like
-  // in upper examples
+  // option 3 : external interrupts
+  // with encoder, it's possible to implement adequate and simple debounce using external
+  // interrupts. below, i will demonstrate this
 
   /*
-      // see ./config/config.h && ./config/exti-handlers.h
-      EXTI_config();
+    EXTI_config();
 
-      return 0;
+    Encoder_SetHandler_turn_left(HandlerTurnLeft);
+    Encoder_SetHandler_turn_right(HandlerTurnRight);
+
+    return 0;
   */
 
-  // however, once again arises the problem of debouncing. it is not that easy to resolve it in
-  // external interrupt handler. now, i will show one way of doing it, that will be explicitly
-  // explained in further labs (should be timers and stuff)
-
-  // ====================
-  // 3rd option : internal interrupt
-  // idea behind this is call previously discussed function Button_UpdateState(...) every tick of
-  // system timer. to do so, we'll incorporate this function inside the ticking handler. thus, we
-  // have actual info on button state we can use everywhere we want
-
-  /*
-      // see ./config/config.h && ./config/inti-handlers.h
-      Tick_config();
-
-      while (1) {
-        if (button_state.status == Turn_on)
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-      }
-  */
-
-  //   return 0;
+  // this version works pretty well without any bouncing problems
 }

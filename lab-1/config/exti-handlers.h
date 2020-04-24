@@ -17,7 +17,7 @@ void EXTI2_3_IRQHandler(void) {
 
   LL_GPIO_TogglePin(GPIOB, PIN_3);
 
-  // not forgetting to clear interruption flag!
+  // ! not forgetting to clear interruption flag !
   LL_EXTI_ClearFlag_0_31(LL_EXTI_LINE_2);
 }
 

@@ -3,17 +3,22 @@
 
 #include <stdint.h>
 
-#include "../device-drivers/button.h"
 #include "./config.h"
 
 // ====================
-// TICK HANDLER
+// SYSTICK HANDLER
+
+static uint32_t tick = 0;
 
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void) {
-  Button_UpdateState(GPIOA, PIN_2);
 
-  // not forgetting to clear interruption flag!
   LL_TIM_ClearFlag_UPDATE(TIM1);
+
+  tick = (tick + 1) % 1000;
+}
+
+uint8_t SysTick_GetTick() {
+  return tick;
 }
 
 #endif
