@@ -48,9 +48,9 @@ void Clocking_config(unsigned int flash_lat, unsigned int pll_div, unsigned int 
 // ====================
 // SYSTICK
 
-// it's needed to showcase 3rd option of button connection - internal interrupts via timer update
+// internal interrupts via timer update
 void Tick_config() {
-  // setting it up so it updates every .1s
+  // setting it up so it updates every 1ms
   LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_TIM1);
   LL_TIM_SetPrescaler(TIM1, 48 - 1);
   LL_TIM_SetCounterMode(TIM1, LL_TIM_COUNTERMODE_UP);
@@ -124,28 +124,6 @@ int PortX_EnableClock(GPIO_TypeDef* port) {
   }
 
   return 0;
-}
-
-// ====================
-// INTERRUPT
-
-// i couldn't find a way to enable all interrupts parametrically in a beautiful way, so this
-// function is kind of fixed, needs to be updated every time interrupt is added / needed
-void EXTI_config() {
-  // enable clocking
-  LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SYSCFG);
-
-  // button interrupt
-  // setting source of interrupt and enabling correspondong line
-  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE2);
-  LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_2);
-
-  // trigger interrupt on rising
-  LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_2);
-
-  // enable corresponding manager in interruption controller and setting priority
-  NVIC_EnableIRQ(EXTI2_3_IRQn);
-  NVIC_SetPriority(EXTI2_3_IRQn, 0);
 }
 
 #endif

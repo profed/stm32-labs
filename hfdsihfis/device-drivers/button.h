@@ -5,6 +5,7 @@
 
 #include "../config/config.h"
 #include "../core/stm32f051x8.h"
+// #include "../plib/stm32f0xx_ll_tim.h"
 
 // ====================
 // BUTTON
@@ -31,8 +32,6 @@ void Button_SetHandler_turn_off(void (*Button_handler_turn_off)(void* params)) {
 }
 
 int SetButton(GPIO_TypeDef* port, unsigned int pin) {
-  // enabling clocking on given port
-  // see ../config/config.g for details and implementation
   PortX_EnableClock(port);
 
   LL_GPIO_SetPinMode(port, pin, LL_GPIO_MODE_INPUT);
@@ -56,7 +55,7 @@ typedef struct {
 } ButtonState;
 
 // no interrupt version. interrupt version can be found in exti-handlers.h (not implemented yet)
-static ButtonState button_state = {0, 10, 2, Off};
+static ButtonState button_state = {0, 10, 5, Off};
 
 void Button_UpdateState(GPIO_TypeDef* port, unsigned int pin) {
   if (LL_GPIO_IsInputPinSet(port, pin) && button_state.counter_cur < button_state.counter_max)
@@ -70,8 +69,7 @@ void Button_UpdateState(GPIO_TypeDef* port, unsigned int pin) {
 
     if (Button_handler_turn_on_ != NULL)
       Button_handler_turn_on_(NULL);
-  } else if (button_state.status == Turn_on &&
-             button_state.counter_cur > button_state.counter_max - button_state.delta) {
+  } else if (button_state.counter_cur > button_state.counter_max - button_state.delta) {
     button_state.status = On;
 
     if (Button_handler_on_ != NULL)
@@ -81,7 +79,7 @@ void Button_UpdateState(GPIO_TypeDef* port, unsigned int pin) {
 
     if (Button_handler_turn_off_ != NULL)
       Button_handler_turn_off_(NULL);
-  } else if (button_state.status == Turn_off && button_state.counter_cur < button_state.delta) {
+  } else if (button_state.counter_cur < button_state.delta) {
     button_state.status = Off;
 
     if (Button_handler_off_ != NULL)

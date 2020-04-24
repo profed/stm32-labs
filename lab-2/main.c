@@ -6,11 +6,12 @@
 // config functions and device drivers are in separate folders so they can be used in further
 // experiments
 //
-// note : 2nd and 3rd options are here just for familiarization and will be axplained on further
-// lectures, no need to worry
+// note : once again, 1st example is essential for this lab, and anothers are for familiarization
+// with another possible approaches that will be mentioned in further lectures
+//
+// uncomment snippets to run them
 
 #include "./config/config.h"
-#include "./config/exti-handlers.h"
 #include "./config/inti-handlers.h"
 
 #include "./input/input.h"
@@ -24,76 +25,55 @@ int main() {
                   LL_RCC_SYSCLK_DIV_1,
                   LL_RCC_APB1_DIV_1);
 
-  // see ./device-drivers/button.h for details and omplementation
+  // see ./device-drivers/button.h for details and implementation
   SetButton(GPIOA, PIN_2);
 
-  // see ./device-drivers/diode.h for details and omplementation
-  SetDiode(GPIOB, PIN_3);
+  // see ./device-drivers/7segm.h for details and implementation
+  SetSegm(GPIOC);
 
   // ====================
-  // 1st option : mundane constant query to the port state
-  // here we are simply asking port about it's state in endless cycle
+  // 1st option : ticking inside while (1)
+  // here we use cycle iterator as tick for 7segm. the thing is, that you cant enable all 4 numbers
+  // simultaneously. if you look closer at datasheet (sunrom-248200.pdf) and circuit scheme in it,
+  // you will see that pins for segments in digits are the seme, but we have to choose the digit we
+  // want to display. for that, we need some cycle and iterator variable in order to go through all
+  // of the digits. let's see first implementation:
 
   /*
-      while (1) {
-        int is_button_pressed = LL_GPIO_IsInputPinSet(GPIOA, PIN_2);
-        if (is_button_pressed) {
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-        }
-      }
+    uint8_t iterator = 0;
+    while (1) {
+      iterator = (iterator + 1) % 1000;
 
-      return 0;
+      // see ./device-drivers/7segm.h for details and implementation
+      Segm_SetNum2(GPIOC, 1337, iterator);
+    }
+
+    return 0;
   */
 
-  // in theory, every time button is pressed, diode will be toggle. however, you'll be able to
-  // notice, that sometimes diode doesn't change it's state or flickers like mad. this is caused by
-  // button bouncing. let's try to fix it:
-
-  /*
-      while (1) {
-        // see ./device-drivers/button.h for implementation and explanantions
-        Button_UpdateState(GPIOA, PIN_2);
-
-        if (button_state.status == Turn_on)
-          // could've wrapped this into the handler, mentioned in button.h, but it's better left as
-          // student's exersise
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-      }
-
-      return 0;
-  */
+  // however, you can notice that if you add some operations to the cycle, 7segm indicator will
+  // start to flicker (add for (int i = 0; i < 10000; i++); to the cycle). in order to fix this, we
+  // will need to iterate upon something that is invariant of operations in the cycle. From the 1st
+  // lab you may remember us using timer as source of update. now, let's do the same, but with
+  // 7segm:
 
   // ====================
-  // 2nd option : external interrupt
-  // here we set up external interrupt to pins 2-3, thus avoiding constant queries and cycles, like
-  // in upper examples
+  // 2nd option : timer interrupt
+  // using same method as in the lab-1
 
   /*
-      // see ./config/config.h && ./config/exti-handlers.h
-      EXTI_config();
+    // see ./conig/config.h for details and implementation
+    Tick_config();
 
-      return 0;
+    // see ./config/inti-handlers.h for details
+    while (1) {
+      // see how this cycle doesn't affect 7segm at all
+      for (int i = 0; i < 10000; i++)
+        ;
+    }
+
+    return 0;
   */
 
-  // however, once again arises the problem of debouncing. it is not that easy to resolve it in
-  // external interrupt handler. now, i will show one way of doing it, that will be explicitly
-  // explained in further labs (should be timers and stuff)
-
-  // ====================
-  // 3rd option : internal interrupt
-  // idea behind this is call previously discussed function Button_UpdateState(...) every tick of
-  // system timer. to do so, we'll incorporate this function inside the ticking handler. thus, we
-  // have actual info on button state we can use everywhere we want
-
-  /*
-      // see ./config/config.h && ./config/inti-handlers.h
-      Tick_config();
-
-      while (1) {
-        if (button_state.status == Turn_on)
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-      }
-  */
-
-  //   return 0;
+  // now we have achieved clear main() and independent 7segm update alongside with button, hooray!
 }

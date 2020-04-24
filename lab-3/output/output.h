@@ -2,8 +2,8 @@
 #define __OUTPUT_H_INCLUDED__
 
 // ====================
-// 7SEGM
+// DIODE
 
-#include "../device-drivers/7segm.h"
+#include "../device-drivers/diode.h"
 
 #endif

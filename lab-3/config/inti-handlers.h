@@ -3,30 +3,16 @@
 
 #include <stdint.h>
 
-#include "../device-drivers/7segm.h"
 #include "../device-drivers/button.h"
 #include "./config.h"
 
 // ====================
-// SYSTICK HANDLER
-
-static uint8_t tick = 0;
-
-int  number = 0;
-void HandlerOnPress(void* params) {
-  number++;
-}
+// TICK HANDLER
 
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void) {
-  Button_SetHandler_turn_on(HandlerOnPress);
-
   Button_UpdateState(GPIOA, PIN_2);
 
-  // displaying current amount of clicks
-  Segm_SetNum2(GPIOC, number, tick);
-
-  tick = (tick + 1) % 1000;
-
+  // not forgetting to clear interruption flag!
   LL_TIM_ClearFlag_UPDATE(TIM1);
 }
 

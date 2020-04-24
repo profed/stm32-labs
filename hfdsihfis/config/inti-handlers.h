@@ -3,31 +3,26 @@
 
 #include <stdint.h>
 
-#include "../device-drivers/7segm.h"
+// #include "../device-drivers/7segm.h"
 #include "../device-drivers/button.h"
+// #include "../game/components/game-instances.h"
 #include "./config.h"
 
 // ====================
 // SYSTICK HANDLER
 
-static uint8_t tick = 0;
-
-int  number = 0;
-void HandlerOnPress(void* params) {
-  number++;
-}
+static uint32_t tick = 0;
 
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void) {
-  Button_SetHandler_turn_on(HandlerOnPress);
-
   Button_UpdateState(GPIOA, PIN_2);
 
-  // displaying current amount of clicks
-  Segm_SetNum2(GPIOC, number, tick);
+  LL_TIM_ClearFlag_UPDATE(TIM1);
 
   tick = (tick + 1) % 1000;
+}
 
-  LL_TIM_ClearFlag_UPDATE(TIM1);
+uint8_t SysTick_GetTick() {
+  return tick;
 }
 
 #endif
