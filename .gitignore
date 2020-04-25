@@ -3,4 +3,5 @@ lolkek
 *build.elf
 *build.bin
 *run.sh
-commit.sh
+*commit.sh
+*.clang-format
