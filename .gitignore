@@ -1,2 +1,6 @@
 lolkek
 .gitignore
+*build.elf
+*build.bin
+*run.sh
+commit.sh
