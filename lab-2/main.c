@@ -59,21 +59,20 @@ int main() {
 
   // ====================
   // 2nd option : timer interrupt
-  // using same method as in the lab-1, inserting needed handlers inside INTI
+  // using same method as in the lab-1, inserting needed handlers inside INTI. counter updates on
+  // button press
 
-  /*
-    // see lib/conig/config.h for details and implementation
-    INTI_config();
+  // see lib/conig/config.h for details and implementation
+  INTI_config();
 
-    // see lib/config/inti-handlers.h for details
-    while (1) {
-      // see how this cycle doesn't affect 7segm at all
-      for (int i = 0; i < 10000; i++)
-        ;
-    }
+  // see lib/config/inti-handlers.h for details
+  while (1) {
+    // see how this cycle doesn't affect 7segm at all
+    for (int i = 0; i < 10000; i++)
+      ;
+  }
 
-    return 0;
-  */
+  return 0;
 
   // now we have achieved clear main() and independent 7segm update alongside with button, hooray!
 }

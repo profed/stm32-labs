@@ -52,14 +52,33 @@ int main() {
   // as usual, first option is boring and bad. constant call of Encoder_UpdateState function in
   // endless cycle. let's see how it works:
 
+  /*
+    while (1) {
+      if (LL_TIM_GetCounterMode(TIM2) == LL_TIM_COUNTERMODE_UP) {
+        LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_3);
+        LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_4);
+      }
+      if (LL_TIM_GetCounterMode(TIM2) == LL_TIM_COUNTERMODE_DOWN) {
+        LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_4);
+        LL_GPIO_ResetOutputPin(GPIOB, LL_GPIO_PIN_3);
+      }
+
+      // for (int i = 0; i < 10000; i++)
+      //   ;
+    }
+  */
+
+  // this approach is good, but without this delay, diodes will start to flicker, signaling about
+  // small bouncing. let's try to fix it
+
   while (1) {
     // see ./device-drivers/encoder.h for details and implementation
     int rot = Encoder_UpdateState(TIM2);
 
-    if (state_encoder.status == Turn_left) {
+    if (state_encoder.status == Left) {
       LL_GPIO_SetOutputPin(GPIOB, PIN_4);
       LL_GPIO_ResetOutputPin(GPIOB, PIN_3);
-    } else if (state_encoder.status == Turn_right) {
+    } else if (state_encoder.status == Right) {
       LL_GPIO_SetOutputPin(GPIOB, PIN_3);
       LL_GPIO_ResetOutputPin(GPIOB, PIN_4);
     }
@@ -67,8 +86,7 @@ int main() {
 
   return 0;
 
-  // assuming you did previous labs, it's obvious why such implementation is poor. it depends on
-  // cycle's busyness
+  // it's obvious why such implementation is poor. it depends on cycle's busyness
 
   // =====================
   // option 2 : (exercise)

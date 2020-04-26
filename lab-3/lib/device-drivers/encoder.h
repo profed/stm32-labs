@@ -72,7 +72,7 @@ typedef struct {
 
 } EncoderState;
 // if results are bad, change counter_max && delta accordingly
-static EncoderState state_encoder = {5, 10, 3, Undefined};
+static EncoderState state_encoder = {8, 16, 4, Undefined};
 
 // same commentary as with Button_UpdateState. Only one encoder is designed to work
 enum EncoderStatus Encoder_UpdateState(TIM_TypeDef* timer) {

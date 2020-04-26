@@ -27,43 +27,6 @@
 const uint32_t SEGM_USED_PINS = DIOD_E | DIOD_D | DIOD_DP | DIOD_C | DIOD_G | DIGIT4 | DIOD_B |
                                 DIGIT3 | DIGIT2 | DIOD_F | DIOD_A | DIGIT1;
 
-const unsigned int SEGM_LETTERS[] = {
-    DIOD_A | DIOD_B | DIOD_C | DIOD_E | DIOD_F | DIOD_G,          // A
-    DIOD_A | DIOD_B | DIOD_C | DIOD_D | DIOD_E | DIOD_F | DIOD_G, // B
-    DIOD_A | DIOD_D | DIOD_E | DIOD_F,                            // C
-    DIOD_A | DIOD_B | DIOD_C | DIOD_D | DIOD_E | DIOD_F,          // D
-    DIOD_A | DIOD_D | DIOD_E | DIOD_F | DIOD_G,                   // E
-    DIOD_A | DIOD_E | DIOD_F | DIOD_G,                            // F
-    DIOD_A | DIOD_C | DIOD_D | DIOD_E | DIOD_F,                   // G
-    DIOD_B | DIOD_C | DIOD_E | DIOD_F | DIOD_G,                   // H
-    DIOD_B | DIOD_C,                                              // I
-    DIOD_B | DIOD_C | DIOD_D,                                     // J
-    DIOD_A | DIOD_C | DIOD_E | DIOD_F | DIOD_G,                   // K
-    DIOD_D | DIOD_E | DIOD_F,                                     // L
-    DIOD_B | DIOD_C | DIOD_E | DIOD_F | DIOD_G,                   // M
-    DIOD_A | DIOD_B | DIOD_C | DIOD_E | DIOD_F,                   // N
-    DIOD_A | DIOD_B | DIOD_C | DIOD_D | DIOD_E | DIOD_F,          // O
-    DIOD_A | DIOD_B | DIOD_E | DIOD_F | DIOD_G,                   // P
-    DIOD_A | DIOD_B | DIOD_C | DIOD_F | DIOD_G,                   // Q
-    DIOD_A | DIOD_B | DIOD_C | DIOD_E | DIOD_F | DIOD_G,          // R
-    DIOD_A | DIOD_C | DIOD_D | DIOD_F | DIOD_G,                   // S
-    DIOD_A | DIOD_B | DIOD_C,                                     // T
-    DIOD_B | DIOD_C | DIOD_D | DIOD_E | DIOD_F,                   // U
-    DIOD_A | DIOD_C | DIOD_D | DIOD_E | DIOD_F,                   // V
-    DIOD_A | DIOD_C | DIOD_D | DIOD_E | DIOD_F,                   // W
-    DIOD_B | DIOD_C | DIOD_E | DIOD_F | DIOD_G,                   // X
-    DIOD_B | DIOD_C | DIOD_D | DIOD_F | DIOD_G,                   // Y
-    DIOD_A | DIOD_B | DIOD_D | DIOD_E | DIOD_G                    // Z
-};
-
-const uint32_t SEGM_SYMBOLS[] = {
-    DIOD_G,                            // -
-    DIOD_DP,                           // .
-    DIOD_D,                            // _
-    DIOD_A | DIOD_D | DIOD_E | DIOD_F, // [
-    DIOD_A | DIOD_B | DIOD_C | DIOD_D, // ]
-};
-
 const unsigned int SEGM_NUMBERS[] = {
     DIOD_A | DIOD_B | DIOD_C | DIOD_D | DIOD_E | DIOD_F,          // 0
     DIOD_B | DIOD_C,                                              // 1
