@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "output.h": "c",
-        "button.h": "c",
-        "config.h": "c",
-        "inti-handlers.h": "c",
-        "stddef.h": "c"
-    }
-}
