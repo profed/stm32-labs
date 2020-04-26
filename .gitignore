@@ -2,6 +2,8 @@ lolkek
 .gitignore
 *build.elf
 *build.bin
+*main.o
 *run.sh
 *commit.sh
 *.clang-format
+.vscode
