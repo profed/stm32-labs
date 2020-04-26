@@ -8,7 +8,7 @@
 #include "./config.h"
 
 // ====================
-// SYSTICK HANDLER
+// TIMER TICK HANDLER
 
 static uint8_t tick = 0;
 

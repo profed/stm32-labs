@@ -13,12 +13,12 @@
 //
 // uncomment snippets to run them
 
-#include "./config/config.h"
-#include "./config/exti-handlers.h"
-#include "./config/inti-handlers.h"
+#include "./lib/config/config.h"
+#include "./lib/config/exti-handlers.h"
 
-#include "./input/input.h"
-#include "./output/output.h"
+#include "./lib/device-drivers/button.h"
+#include "./lib/device-drivers/diode.h"
+#include "./lib/device-drivers/encoder.h"
 
 void HandlerTurnLeft(void* params) {
   LL_GPIO_SetOutputPin(GPIOB, PIN_4);
@@ -32,14 +32,14 @@ void HandlerTurnRight(void* params) {
 
 int main() {
   // configuring clocking
-  Clocking_config(LL_FLASH_LATENCY_1,
-                  LL_RCC_PLLSOURCE_HSI_DIV_2,
-                  LL_RCC_PLL_MUL_12,
-                  LL_RCC_SYSCLK_DIV_1,
-                  LL_RCC_APB1_DIV_1);
+  rcc_config(LL_FLASH_LATENCY_1,
+             LL_RCC_PLLSOURCE_HSI_DIV_2,
+             LL_RCC_PLL_MUL_12,
+             LL_RCC_SYSCLK_DIV_1,
+             LL_RCC_APB1_DIV_1);
 
   // see ./device-dravers/encoder.h for details and implementation
-  SetEncoder(GPIOA, TIM2, PIN_1, PIN_0);
+  SetEncoder(GPIOA, TIM2, PIN_0, PIN_1);
 
   // diodes for rotation indication
   SetDiode(GPIOB, PIN_3);
@@ -49,31 +49,26 @@ int main() {
 
   // =====================
   // 1st option :
-  // as usual, first option is boring and bad. constant call of Encoder_GetRotation function in
+  // as usual, first option is boring and bad. constant call of Encoder_UpdateState function in
   // endless cycle. let's see how it works:
 
-  /*
-    while (1) {
-      // see ./device-drivers/encoder.h for details and implementation
-      int rot = Encoder_GetRotation(TIM2);
+  while (1) {
+    // see ./device-drivers/encoder.h for details and implementation
+    int rot = Encoder_UpdateState(TIM2);
 
-      if (rot == Left) {
-        LL_GPIO_SetOutputPin(GPIOB, PIN_4);
-        LL_GPIO_ResetOutputPin(GPIOB, PIN_3);
-      } else if (rot == Right) {
-        LL_GPIO_SetOutputPin(GPIOB, PIN_3);
-        LL_GPIO_ResetOutputPin(GPIOB, PIN_4);
-      }
+    if (state_encoder.status == Turn_left) {
+      LL_GPIO_SetOutputPin(GPIOB, PIN_4);
+      LL_GPIO_ResetOutputPin(GPIOB, PIN_3);
+    } else if (state_encoder.status == Turn_right) {
+      LL_GPIO_SetOutputPin(GPIOB, PIN_3);
+      LL_GPIO_ResetOutputPin(GPIOB, PIN_4);
     }
+  }
 
-    return 0;
-  */
+  return 0;
 
   // assuming you did previous labs, it's obvious why such implementation is poor. it depends on
-  // cycle's busyness and doesn't even has debouncing (you can notice second diode is flickering a
-  // little bit while you rotate). here i won't try to fix this aaproach and will proceed to the
-  // better one immidaetly, but it will be a useful exercise for students. you should modify
-  // Encoder_GetRotation function to have debounce and handlers for each possible state and test it
+  // cycle's busyness
 
   // =====================
   // option 2 : (exercise)

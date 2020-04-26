@@ -1,9 +1,9 @@
 #ifndef __ENCODER_H_INCLUDED__
 #define __ENCODER_H_INCLUDED__
 
+#include "../../core/stm32f051x8.h"
+#include "../../plib/stm32f0xx_ll_tim.h"
 #include "../config/config.h"
-#include "../core/stm32f051x8.h"
-#include "../plib/stm32f0xx_ll_tim.h"
 
 // ====================
 // ENCODER
@@ -71,17 +71,40 @@ typedef struct {
   enum EncoderStatus status;
 
 } EncoderState;
+// if results are bad, change counter_max && delta accordingly
+static EncoderState state_encoder = {5, 10, 3, Undefined};
 
-// non-interrupt version, interrupt implementation can be found in exti-handlers.h
-// also, it's very simple implementation and may and should be modified
-enum EncoderStatus Encoder_GetRotation(TIM_TypeDef* timer) {
-  switch (LL_TIM_GetCounterMode(timer)) {
-  case LL_TIM_COUNTERMODE_DOWN:
-    return Left;
-  case LL_TIM_COUNTERMODE_UP:
-    return Right;
-  default:
-    return Undefined;
+// same commentary as with Button_UpdateState. Only one encoder is designed to work
+enum EncoderStatus Encoder_UpdateState(TIM_TypeDef* timer) {
+  // this function automatically does what we'd have to do manually to get rotation. it gets signals
+  // from both channels and compares them, thus identifying rotation direction
+  unsigned int rot = LL_TIM_GetCounterMode(TIM2);
+
+  // same strategy as with button
+  if (rot == LL_TIM_COUNTERMODE_DOWN && state_encoder.counter_cur > 0)
+    state_encoder.counter_cur--;
+  else if (rot == LL_TIM_COUNTERMODE_UP && state_encoder.counter_cur < state_encoder.counter_max)
+    state_encoder.counter_cur++;
+
+  if (state_encoder.status == !Right && state_encoder.counter_cur > state_encoder.delta) {
+    state_encoder.status = Turn_right;
+    if (Encoder_handler_turn_right_ != NULL)
+      Encoder_handler_turn_right_(NULL);
+  } else if (state_encoder.status == !Left &&
+             state_encoder.counter_cur < state_encoder.counter_max - state_encoder.delta) {
+    state_encoder.status = Turn_left;
+    if (Encoder_handler_turn_left_ != NULL)
+      Encoder_handler_turn_left_(NULL);
+  } else if ((state_encoder.status == Turn_left || state_encoder.status == Undefined) &&
+             state_encoder.counter_cur < state_encoder.delta) {
+    state_encoder.status = Left;
+    if (Encoder_handler_left_ != NULL)
+      Encoder_handler_left_(NULL);
+  } else if ((state_encoder.status == Turn_right || state_encoder.status == Undefined) &&
+             state_encoder.counter_cur > state_encoder.counter_max - state_encoder.delta) {
+    state_encoder.status = Right;
+    if (Encoder_handler_right_ != NULL)
+      Encoder_handler_right_(NULL);
   }
 }
 

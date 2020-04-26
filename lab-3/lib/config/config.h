@@ -14,8 +14,8 @@
 // ====================
 // RCC (tacting)
 
-void Clocking_config(unsigned int flash_lat, unsigned int pll_div, unsigned int pll_mul,
-                     unsigned int sysclk_div, unsigned int apb1_div) {
+void rcc_config(unsigned int flash_lat, unsigned int pll_div, unsigned int pll_mul,
+                unsigned int sysclk_div, unsigned int apb1_div) {
   // setting amount of waiting cycles for FLASH memory
   LL_FLASH_SetLatency(flash_lat);
 
@@ -31,7 +31,7 @@ void Clocking_config(unsigned int flash_lat, unsigned int pll_div, unsigned int 
 
   // the quatrz's frequency is 8 MHz, we need to set in to 48MHz in order for our periphery to work
   // correctly. so we set selector's prescale to / 2 and PLL's multiplier to 12, resulting in needed
-  // 48 MHz
+  // 48 MHz (assuming main.c parameters)
   LL_RCC_PLL_ConfigDomain_SYS(pll_div, pll_mul);
 
   // now, we need to set system clock to the PLL's frequency
@@ -40,29 +40,9 @@ void Clocking_config(unsigned int flash_lat, unsigned int pll_div, unsigned int 
     ;
 
   // as we need main bus (DMA, RCC, GPIO, USART, TIM, etc) to operate on the same 48MHz, we set
-  // their prescalers to / 1
+  // their prescalers to / 1 (assuming main.c parameters)
   LL_RCC_SetAHBPrescaler(sysclk_div);
   LL_RCC_SetAPB1Prescaler(apb1_div);
-}
-
-// ====================
-// SYSTICK
-
-// it's needed to showcase 3rd option of button connection - internal interrupts via timer update
-void Tick_config() {
-  // setting it up so it updates every 1ms
-  LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_TIM1);
-  LL_TIM_SetPrescaler(TIM1, 48 - 1);
-  LL_TIM_SetCounterMode(TIM1, LL_TIM_COUNTERMODE_UP);
-  LL_TIM_SetAutoReload(TIM1, 1000 - 1);
-
-  // Enable interrupts
-  LL_TIM_EnableIT_UPDATE(TIM1);
-
-  LL_TIM_EnableCounter(TIM1);
-
-  NVIC_EnableIRQ(TIM1_BRK_UP_TRG_COM_IRQn);
-  NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, 1);
 }
 
 // ====================
@@ -86,39 +66,38 @@ void Tick_config() {
 #define PIN_15 LL_GPIO_PIN_15
 
 // this function is designated to enable clocking on certain port
-// really, these static flags aren't necessary, because LL_AHB1_GRP1_EnableClock is idempotent (can
-// be called multiple times resulting in the same result) operation (if you examine plib files,
-// you'll se that it performs plain bit-oring and can be repeated indefinitely without any
-// consequences)
+// because LL_..._EnableClock is idempotent (can be called multiple times resulting in the
+// same result) operation (if you examine plib files, you'll se that it performs plain bit-oring and
+// can be repeated indefinitely without any consequences) can be safely called multiple times
 //
-// in this version, they are left as they are for debug purposes, but once more, such measures
-// aren't needed
+// this function is left as it is due to parametric nature of external device drivers
 int PortX_EnableClock(GPIO_TypeDef* port) {
-  static char PORT_A_ENABLED_CLOCK = 0;
-  static char PORT_B_ENABLED_CLOCK = 0;
-  static char PORT_C_ENABLED_CLOCK = 0;
-  static char PORT_D_ENABLED_CLOCK = 0;
-  static char PORT_F_ENABLED_CLOCK = 0;
-
-  if (PORT_A_ENABLED_CLOCK == 0 && port == GPIOA) {
-    PORT_A_ENABLED_CLOCK++;
+  if (port == GPIOA) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-
-  } else if (PORT_B_ENABLED_CLOCK == 0 && port == GPIOB) {
-    PORT_B_ENABLED_CLOCK++;
+  } else if (port == GPIOB) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-
-  } else if (PORT_C_ENABLED_CLOCK == 0 && port == GPIOC) {
-    PORT_C_ENABLED_CLOCK++;
+  } else if (port == GPIOC) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-
-  } else if (PORT_D_ENABLED_CLOCK == 0 && port == GPIOD) {
-    PORT_D_ENABLED_CLOCK++;
+  } else if (port == GPIOD) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
-
-  } else if (PORT_F_ENABLED_CLOCK == 0 && port == GPIOF) {
-    PORT_F_ENABLED_CLOCK++;
+  } else if (port == GPIOF) {
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOF);
+  } else {
+    return -1;
+  }
+
+  return 0;
+}
+
+// ====================
+// TIMER
+
+// you may add more timers, i only needed 3 of them. also, same commentary as with PortX_EnableClock
+int TimerX_EnableClock(TIM_TypeDef* timer) {
+  if (timer == TIM2) {
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM2);
+  } else if (timer == TIM3) {
+    LL_AHB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
   } else {
     return -1;
   }
@@ -129,23 +108,30 @@ int PortX_EnableClock(GPIO_TypeDef* port) {
 // ====================
 // INTERRUPT
 
-// i couldn't find a way to enable all interrupts parametrically in a beautiful way, so this
-// function is kind of fixed, needs to be updated every time interrupt is added / needed
+// i couldn't find a way to enable all interrupts parametrically in a beautiful way, so these
+// functions are kind of fixed, need to be updated every time interrupt is added / deleted.
 void EXTI_config() {
   // enable clocking
   LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SYSCFG);
 
-  // button interrupt
-  // setting source of interrupt and enabling correspondong line
-  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE2);
-  LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_2);
+  // setting pins 0 && 1 of port one as external interrupt sources and linking them to correspoding
+  // interrupt lines. enabling interrupts on these lines
+  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE1);
+  LL_SYSCFG_SetEXTISource(LL_SYSCFG_EXTI_PORTA, LL_SYSCFG_EXTI_LINE0);
+  LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_1);
+  LL_EXTI_EnableIT_0_31(LL_EXTI_LINE_0);
 
-  // trigger interrupt on rising
-  LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_2);
+  // enabling trigger on both falling and rising trigger for both lines, as we need to read both
+  // rotation directions
+  LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_1);
+  LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_1);
 
-  // enable corresponding manager in interruption controller and setting priority
-  NVIC_EnableIRQ(EXTI2_3_IRQn);
-  NVIC_SetPriority(EXTI2_3_IRQn, 0);
+  LL_EXTI_EnableFallingTrig_0_31(LL_EXTI_LINE_0);
+  LL_EXTI_EnableRisingTrig_0_31(LL_EXTI_LINE_0);
+
+  // enabling handlers for corresponding interrupts in interrupt controller and setting priority
+  NVIC_EnableIRQ(EXTI0_1_IRQn);
+  NVIC_SetPriority(EXTI0_1_IRQn, 1);
 }
 
 #endif

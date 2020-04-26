@@ -11,20 +11,24 @@
 //
 // uncomment snippets to run them
 
-#include "./config/config.h"
-#include "./config/exti-handlers.h"
-#include "./config/inti-handlers.h"
+#include "./lib/config/config.h"
+#include "./lib/config/exti-handlers.h"
+#include "./lib/config/inti-handlers.h"
 
-#include "./input/input.h"
-#include "./output/output.h"
+#include "./lib/device-drivers/button.h"
+#include "./lib/device-drivers/diode.h"
+
+void HandlerOnPress(void* params) {
+  LL_GPIO_TogglePin(GPIOA, PIN_3);
+}
 
 int main() {
   // configuring clocking
-  Clocking_config(LL_FLASH_LATENCY_1,
-                  LL_RCC_PLLSOURCE_HSI_DIV_2,
-                  LL_RCC_PLL_MUL_12,
-                  LL_RCC_SYSCLK_DIV_1,
-                  LL_RCC_APB1_DIV_1);
+  rcc_config(LL_FLASH_LATENCY_1,
+             LL_RCC_PLLSOURCE_HSI_DIV_2,
+             LL_RCC_PLL_MUL_12,
+             LL_RCC_SYSCLK_DIV_1,
+             LL_RCC_APB1_DIV_1);
 
   // see ./device-drivers/button.h for details and implementation
   SetButton(GPIOA, PIN_2);
@@ -52,18 +56,20 @@ int main() {
   // button bouncing. let's try to fix it:
 
   /*
-      while (1) {
-        // see ./device-drivers/button.h for implementation and explanantions
-        Button_UpdateState(GPIOA, PIN_2);
+    while (1) {
+      // see lib/device-drivers/button.h for implementation and explanantions
+      Button_UpdateState(GPIOA, PIN_2);
 
-        if (button_state.status == Turn_on)
-          // could've wrapped this into the handler, mentioned in button.h, but it's better left as
-          // student's exersise. also, if you add more operations here or in tick handler, this "if
-          // check" will stop working correctly. guess why, and how using handlers may fix it
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-        }
+      if (button_state.status == Turn_on) {
+        // could've wrapped this into the handler, mentioned in button.h, but it's better left as
+        // exersise. also, if you add more operations here or in tick handler (try adding
+        // for(int i = 0; i < 10000; i++);), this "if check" will stop working correctly. guess why,
+        // and how using handlers may fix it
+        LL_GPIO_TogglePin(GPIOB, PIN_3);
+      }
+    }
 
-      return 0;
+    return 0;
   */
 
   // ====================
@@ -72,16 +78,16 @@ int main() {
   // in upper examples
 
   /*
-      // see ./config/config.h && ./config/exti-handlers.h
-      EXTI_config();
+    // see lib/config/config.h && lib/config/exti-handlers.h
+    EXTI_config();
 
-      return 0;
+    return 0;
   */
 
   // however, once again arises the problem of debouncing. it is not that easy to resolve it in
-  // external interrupt handler (but you can improve the example above by using handlers and / or
-  // Button_UpdateState in interrupt handlers). now, i will show one way of doing it, it will be
-  // explicitly explained in further lectures (should be timers and stuff)
+  // external interrupt handler without using additional timer interrupt or smth like this. now, i
+  // will show one way of dealing with debounce, that will be explicitly explained in further
+  // lectures (should be timers and stuff)
 
   // ====================
   // 3rd option : internal interrupt
@@ -90,14 +96,14 @@ int main() {
   // have actual info on button state we can use everywhere we want
 
   /*
-      // see ./config/config.h && ./config/inti-handlers.h
-      Tick_config();
+    // see lib/config/config.h && ./config/inti-handlers.h
+    INTI_config();
 
-      while (1) {
-        if (button_state.status == Turn_on)
-          LL_GPIO_TogglePin(GPIOB, PIN_3);
-      }
+    while (1) {
+      if (button_state.status == Turn_on)
+        LL_GPIO_TogglePin(GPIOB, PIN_3);
+    }
+
+    return 0;
   */
-
-  //   return 0;
 }

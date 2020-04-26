@@ -5,7 +5,7 @@
 
 int SetDiode(GPIO_TypeDef* port, unsigned int pin) {
   // enabling clocking on given port
-  // see ../config/config.g for details and implementation
+  // see lib/config/config.g for details and implementation
   PortX_EnableClock(port);
 
   // setting given pin as output pin

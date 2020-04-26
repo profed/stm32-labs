@@ -84,13 +84,14 @@ const unsigned int SEGM_QUARTERS[] = {
     DIGIT3 | DIGIT2 | DIGIT4  // only 1st digit (millenials)
 };
 
-// i pre-defined pins from 1 to 12 to be pins of 7 segm, so user only chooses port. maybe will
-// change in further implementations
+// i pre-defined pins from 1 to 12 to be pins of 7 segm, so user only chooses port. you can easily
+// change that
 void SetSegm(GPIO_TypeDef* port) {
   // enabling clocking on given port
-  // see ../config/config.g for details and implementation
+  // see lib/config/config.g for details and implementation
   PortX_EnableClock(port);
 
+  // setting needed pins to output
   LL_GPIO_SetPinMode(port, DIGIT1, LL_GPIO_MODE_OUTPUT);
   LL_GPIO_SetPinMode(port, DIGIT2, LL_GPIO_MODE_OUTPUT);
   LL_GPIO_SetPinMode(port, DIGIT3, LL_GPIO_MODE_OUTPUT);

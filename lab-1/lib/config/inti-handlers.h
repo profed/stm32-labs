@@ -7,7 +7,7 @@
 #include "./config.h"
 
 // ====================
-// TICK HANDLER
+// TIM1 TICK HANDLER
 
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void) {
   Button_UpdateState(GPIOA, PIN_2);

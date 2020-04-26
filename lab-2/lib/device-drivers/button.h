@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 
+#include "../../core/stm32f051x8.h"
 #include "../config/config.h"
-#include "../core/stm32f051x8.h"
 
 // ====================
 // BUTTON
@@ -32,7 +32,7 @@ void Button_SetHandler_turn_off(void (*Button_handler_turn_off)(void* params)) {
 
 int SetButton(GPIO_TypeDef* port, unsigned int pin) {
   // enabling clocking on given port
-  // see ../config/config.g for details and implementation
+  // see lib/config/config.g for details and implementation
   PortX_EnableClock(port);
 
   LL_GPIO_SetPinMode(port, pin, LL_GPIO_MODE_INPUT);
@@ -54,10 +54,14 @@ typedef struct {
   uint8_t           delta;
   enum ButtonStatus status;
 } ButtonState;
-
-// no interrupt version. interrupt version can be found in exti-handlers.h (not implemented yet)
+// if results are bad, change counter_max && delta accordingly
 static ButtonState button_state = {0, 10, 2, Off};
 
+// not very good vesion of such function, because it is designed to handle only one button. you
+// may and probably should improve it if you think of using this template in your project (f.ex.
+// adding ButtonState* state to parameters and then doing all of the changes inside of it. maybe you
+// should include pointer to the handler funclions inside this state to have possibility to handle
+// multiple buttons with just this one pdateState)
 void Button_UpdateState(GPIO_TypeDef* port, unsigned int pin) {
   if (LL_GPIO_IsInputPinSet(port, pin) && button_state.counter_cur < button_state.counter_max)
     button_state.counter_cur++;

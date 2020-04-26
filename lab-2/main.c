@@ -11,40 +11,40 @@
 //
 // uncomment snippets to run them
 
-#include "./config/config.h"
-#include "./config/inti-handlers.h"
+#include "./lib/config/config.h"
+#include "./lib/config/inti-handlers.h"
 
-#include "./input/input.h"
-#include "./output/output.h"
+#include "./lib/device-drivers/7segm.h"
+#include "./lib/device-drivers/button.h"
 
 int main() {
   // configuring clocking
-  Clocking_config(LL_FLASH_LATENCY_1,
-                  LL_RCC_PLLSOURCE_HSI_DIV_2,
-                  LL_RCC_PLL_MUL_12,
-                  LL_RCC_SYSCLK_DIV_1,
-                  LL_RCC_APB1_DIV_1);
+  rcc_config(LL_FLASH_LATENCY_1,
+             LL_RCC_PLLSOURCE_HSI_DIV_2,
+             LL_RCC_PLL_MUL_12,
+             LL_RCC_SYSCLK_DIV_1,
+             LL_RCC_APB1_DIV_1);
 
-  // see ./device-drivers/button.h for details and implementation
+  // see lib/device-drivers/button.h for details and implementation
   SetButton(GPIOA, PIN_2);
 
-  // see ./device-drivers/7segm.h for details and implementation
+  // see lib/device-drivers/7segm.h for details and implementation
   SetSegm(GPIOC);
 
   // ====================
   // 1st option : ticking inside while (1)
   // here we use cycle iterator as tick for 7segm. the thing is, that you cant enable all 4 numbers
-  // simultaneously. if you look closer at datasheet (sunrom-248200.pdf) and circuit scheme in it,
-  // you will see that pins for segments in digits are the seme, but we have to choose the digit we
-  // want to display. for that, we need some cycle and iterator variable in order to go through all
-  // of the digits. let's see first implementation:
+  // simultaneously. if you look closer at datasheet (7segm.pdf) and circuit scheme in it, you will
+  // see that pins for segments in digits are the same, but we have to choose the digit we want to
+  // display. for that, we need some cycle and iterator variable in order to go through all of the
+  // digits. let's see first implementation:
 
   /*
     uint8_t iterator = 0;
     while (1) {
       iterator = (iterator + 1) % 1000;
 
-      // see ./device-drivers/7segm.h for details and implementation
+      // see lib/device-drivers/7segm.h for details and implementation
       Segm_SetNum2(GPIOC, 1337, iterator);
     }
 
@@ -59,13 +59,13 @@ int main() {
 
   // ====================
   // 2nd option : timer interrupt
-  // using same method as in the lab-1
+  // using same method as in the lab-1, inserting needed handlers inside INTI
 
   /*
-    // see ./conig/config.h for details and implementation
-    Tick_config();
+    // see lib/conig/config.h for details and implementation
+    INTI_config();
 
-    // see ./config/inti-handlers.h for details
+    // see lib/config/inti-handlers.h for details
     while (1) {
       // see how this cycle doesn't affect 7segm at all
       for (int i = 0; i < 10000; i++)
