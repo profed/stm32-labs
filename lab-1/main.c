@@ -19,7 +19,7 @@
 #include "./lib/device-drivers/diode.h"
 
 void HandlerOnPress(void* params) {
-  LL_GPIO_TogglePin(GPIOA, PIN_3);
+  LL_GPIO_TogglePin(GPIOB, PIN_3);
 }
 
 int main() {
@@ -43,6 +43,7 @@ int main() {
   /*
       while (1) {
         int is_button_pressed = LL_GPIO_IsInputPinSet(GPIOA, PIN_2);
+
         if (is_button_pressed) {
           LL_GPIO_TogglePin(GPIOB, PIN_3);
         }
@@ -56,17 +57,11 @@ int main() {
   // button bouncing. let's try to fix it:
 
   /*
+    Button_SetHandler_turn_on(HandlerOnPress);
+
     while (1) {
       // see lib/device-drivers/button.h for implementation and explanantions
       Button_UpdateState(GPIOA, PIN_2);
-
-      if (button_state.status == Turn_on) {
-        // could've wrapped this into the handler, mentioned in button.h, but it's better left as
-        // exersise. also, if you add more operations here or in tick handler (try adding
-        // for(int i = 0; i < 10000; i++);), this "if check" will stop working correctly. guess why,
-        // and how using handlers may fix it
-        LL_GPIO_TogglePin(GPIOB, PIN_3);
-      }
     }
 
     return 0;
@@ -91,19 +86,19 @@ int main() {
 
   // ====================
   // 3rd option : internal interrupt
-  // idea behind this is call previously discussed function Button_UpdateState(...) every tick of
+  // idea behind this is to call previously discussed function Button_UpdateState(...) every tick of
   // system timer. to do so, we'll incorporate this function inside the ticking handler. thus, we
-  // have actual info on button state we can use everywhere we want
+  // have actual info on button state
 
   /*
     // see lib/config/config.h && ./config/inti-handlers.h
     INTI_config();
 
-    while (1) {
-      if (button_state.status == Turn_on)
-        LL_GPIO_TogglePin(GPIOB, PIN_3);
-    }
+    Button_SetHandler_turn_on(HandlerOnPress);
 
     return 0;
   */
+
+  // as you can see, we were able to get rid of cycles in our programm, which is obviously goob,
+  // because our processor is alost free to all of the other tasks we can imagine for it
 }
